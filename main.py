@@ -37,9 +37,10 @@ def main(_):
     if not os.path.exists(FLAGS.sample_dir):
         os.makedirs(FLAGS.sample_dir)
 
-    #gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
-    run_config = tf.ConfigProto()
-    run_config.gpu_options.allow_growth=True
+    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.5)
+    run_config = tf.ConfigProto(gpu_options=gpu_options)
+    run_config.gpu_options.allow_growth=False
 
     with tf.Session(config=run_config) as sess:
 
@@ -73,6 +74,7 @@ def main(_):
 
         # Below is codes for visualization
         OPTION = 1
+        # if FLAGS.visualize:
         visualize(sess, dcgan, FLAGS, OPTION)
 
 if __name__ == '__main__':
