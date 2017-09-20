@@ -154,7 +154,7 @@ class DCGAN(object):
         for epoch in xrange(config.epoch):    
             self.data = glob(os.path.join("./data", config.dataset, self.input_fname_pattern))
             batch_idxs = min(len(self.data), config.train_size) // config.batch_size
-
+            # batch_idxs = 20
             for idx in xrange(0, batch_idxs):
                 batch_files = self.data[idx*config.batch_size:(idx+1)*config.batch_size]
                 batch = [get_image(batch_file,
@@ -186,22 +186,22 @@ class DCGAN(object):
                 errD_real = self.d_loss_real.eval({ self.inputs: batch_images })
                 errG = self.g_loss.eval({self.z: batch_z})
 
-            counter += 1
-            print("Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f" \
-                % (epoch, idx, batch_idxs, time.time() - start_time, errD_fake+errD_real, errG))
+                counter += 1
+                print("Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f" \
+                    % (epoch, idx, batch_idxs, time.time() - start_time, errD_fake+errD_real, errG))                
             
-            if np.mod(counter, 100) == 1:
-                try:
-                    samples, d_loss, g_loss = self.sess.run([self.sampler, self.d_loss, self.g_loss],
-                        feed_dict={ self.z: sample_z, self.inputs: sample_inputs})
-                    save_images(samples, image_manifold_size(samples.shape[0]),
-                            './{}/train_{:02d}_{:04d}.png'.format(config.sample_dir, epoch, idx))
-                    print("[Sample] d_loss: %.8f, g_loss: %.8f" % (d_loss, g_loss)) 
-                except:
-                    print("one pic error!...")
+                if np.mod(counter, 100) == 1:
+                    try:
+                        samples, d_loss, g_loss = self.sess.run([self.sampler, self.d_loss, self.g_loss],
+                            feed_dict={ self.z: sample_z, self.inputs: sample_inputs})
+                        save_images(samples, image_manifold_size(samples.shape[0]),
+                                './{}/train_{:02d}_{:04d}.png'.format(config.sample_dir, epoch, idx))
+                        print("[Sample] d_loss: %.8f, g_loss: %.8f" % (d_loss, g_loss)) 
+                    except:
+                        print("one pic error!...")
 
-            if np.mod(counter, 500) == 2:
-                self.save(config.checkpoint_dir, counter)
+                if np.mod(counter, 500) == 2:
+                    self.save(config.checkpoint_dir, counter)
 
     def discriminator(self, x_input, reuse=False):
         with tf.variable_scope('discriminator') as scope:
