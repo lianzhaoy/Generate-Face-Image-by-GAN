@@ -1,7 +1,6 @@
 
 # coding: utf-8
 
-# Loading MNIST Data
 
 import tensorflow as tf
 import random
@@ -140,7 +139,7 @@ z_placeholder = tf.placeholder(tf.float32, [None, z_dim])
 
 
 
-Dx = discriminator(x_placeholder) # real
+Dx = discriminator(x_placeholder, reuse=False) # real
 Gz = generator(z_placeholder, batch_size, z_dim, reuse=False) # generator
 Dg = discriminator(Gz, reuse=True) #fake
 

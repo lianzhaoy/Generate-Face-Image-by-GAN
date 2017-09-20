@@ -2,4 +2,8 @@
 *.pyc
 *.jpg
 *.png
+.ipynb_checkpoints/*
 data/*
+checkpoint/*
+logs/*
+.git/*

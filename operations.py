@@ -2,6 +2,15 @@ import math
 import numpy as np 
 import tensorflow as tf
 import scipy.misc
+import pprint
+
+from tensorflow.python.framework import ops
+
+pp = pprint.PrettyPrinter()
+
+def show_all_variables():
+  model_vars = tf.trainable_variables()
+  slim.model_analyzer.analyze_vars(model_vars, print_info=True)
 
 def conv2d(input_, output_dim,
                     k_h=5, k_w=5, s_h=2, s_w=2, stddev=0.02,
@@ -57,6 +66,11 @@ def linear(input_, output_size, scope=None, stddev=0.02, bias_start=0.0, with_w=
         return tf.matmul(input_, matrix) + bias
 
 
+# some functions dealing with images
+
+def save_images(images, size, image_path):
+    return imsave(inverse_transform(images), size, image_path)
+
 def get_image(image_path, input_height, input_width,
               resize_height=64, resize_width=64,
               crop=True, grayscale=False):
@@ -90,7 +104,11 @@ def transform(image, input_height, input_width,
         cropped_image = scipy.misc.imresize(image, [resize_height, resize_width])
     return np.array(cropped_image)/127.5 - 1.
 
-
+def image_manifold_size(num_images):
+    manifold_h = int(np.floor(np.sqrt(num_images)))
+    manifold_w = int(np.ceil(np.sqrt(num_images)))
+    assert manifold_h * manifold_w == num_images
+    return manifold_h, manifold_w
 
 
 class batch_norm(object):
