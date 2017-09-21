@@ -7,3 +7,6 @@ data/*
 checkpoint/*
 logs/*
 .git/*
+mnist.py
+test_all.ipynb
+test_crop.py
