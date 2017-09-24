@@ -58,7 +58,10 @@ class DCGAN(object):
         self.checkpoint_dir = checkpoint_dir
 
         # all the data path
-        self.data = glob(os.path.join('./data', self.dataset_name, self.input_fname_pattern))
+		if self.dataset_name == 'Webface':
+        	self.data = glob(os.path.join('./data', self.dataset_name, '*', self.input_fname_pattern))
+		else:
+			self.data = glob(os.path.join('./data', self.dataset_name, self.input_fname_pattern))
         self.channel = imread(self.data[0]).shape[-1]
         # if chaneel==1, it's a gray image
         self.grayscale = (self.channel == 1)
@@ -74,7 +77,7 @@ class DCGAN(object):
 
         self.inputs = tf.placeholder(
             tf.float32, [self.batch_size] + image_dims, name='real_images')
-
+        #inputs: [batch_size, image_h, image_w, channel]
         inputs = self.inputs
 
         self.z = tf.placeholder(tf.float32, [None, self.z_dim], name='z')
@@ -151,8 +154,11 @@ class DCGAN(object):
         else:
             print(" [!] Load failed...")
 
-        for epoch in xrange(config.epoch):    
-            self.data = glob(os.path.join("./data", config.dataset, self.input_fname_pattern))
+        for epoch in xrange(config.epoch):
+			if config.dataset == 'Webface': 
+            	self.data = glob(os.path.join("./data", config.dataset, '*', self.input_fname_pattern))
+			else:
+				self.data = glob(os.path.join("./data", config.dataset, self.input_fname_pattern))
             batch_idxs = min(len(self.data), config.train_size) // config.batch_size
             # batch_idxs = 20
             for idx in xrange(0, batch_idxs):
