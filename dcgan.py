@@ -59,9 +59,9 @@ class DCGAN(object):
 
         # all the data path
 		if self.dataset_name == 'Webface':
-        	self.data = glob(os.path.join('./data', self.dataset_name, '*', self.input_fname_pattern))
+            self.data = glob(os.path.join('./data', self.dataset_name, '*', self.input_fname_pattern))
 		else:
-			self.data = glob(os.path.join('./data', self.dataset_name, self.input_fname_pattern))
+	        self.data = glob(os.path.join('./data', self.dataset_name, self.input_fname_pattern))
         self.channel = imread(self.data[0]).shape[-1]
         # if chaneel==1, it's a gray image
         self.grayscale = (self.channel == 1)
