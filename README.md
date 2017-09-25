@@ -19,15 +19,15 @@ First, download dataset with:
 
 To train a model with downloaded dataset:
 
-    $ python main.py --dataset mnist --input_eight=28 --output_height=28 --train
+    $ python main.py --dataset mnist --input_height=28 --output_height=28 --train
     $ python main.py --dataset celebA --input_height=108 --train --crop
-	$ python main.py --dataset Webface --input_height=256 --crop True --train True --train_size 100
+    $ python main.py --dataset Webface --input_height=256 --crop True --train True --train_size 100
 
 To test with an existing model:
 
     $ python main.py --dataset mnist --input_height=28 --output_height=28
     $ python main.py --dataset celebA --input_height=108 --crop
-	$ python main.py --dataset Webface --input_height=256 --crop True
+    $ python main.py --dataset Webface --input_height=256 --crop True
 	
 Or, you can use your own dataset (without central crop) by:
 
