@@ -21,8 +21,8 @@ from tqdm import tqdm
 from six.moves import urllib
 
 parser = argparse.ArgumentParser(description='Download dataset for DCGAN.')
-parser.add_argument('datasets', metavar='N', type=str, nargs='+', choices=['celebA', 'lsun', 'mnist'],
-           help='name of dataset to download [celebA, lsun, mnist]')
+parser.add_argument('datasets', metavar='N', type=str, nargs='+', choices=['celebA', 'lsun', 'mnist', 'webface'],
+           help='name of dataset to download [celebA, lsun, mnist,webface]')
 
 def download(url, dirpath):
   filename = url.split('/')[-1]
@@ -84,6 +84,28 @@ def unzip(filepath):
   with zipfile.ZipFile(filepath) as zf:
     zf.extractall(dirpath)
   os.remove(filepath)
+
+#need revises
+def download_webface(dirpath):
+  data_dir = 'webface'
+  if os.path.exists(os.path.join(dirpath, data_dir)):
+    print('Found Webface - skip')
+    return
+
+  filename, drive_id  = "Webface.zip", "0B1w4EurIZUokcndTMWRDZy1hVUE"
+  save_path = os.path.join(dirpath, filename)
+
+  if os.path.exists(save_path):
+    print('[*] {} already exists'.format(save_path))
+  else:
+    download_file_from_google_drive(drive_id, save_path)
+
+  zip_dir = ''
+  with zipfile.ZipFile(save_path) as zf:
+    zip_dir = zf.namelist()[0]
+    zf.extractall(dirpath)
+  os.remove(save_path)
+  os.rename(os.path.join(dirpath, zip_dir), os.path.join(dirpath, data_dir))
 
 def download_celeb_a(dirpath):
   data_dir = 'celebA'
@@ -178,3 +200,5 @@ if __name__ == '__main__':
     download_lsun('./data')
   if 'mnist' in args.datasets:
     download_mnist('./data')
+  if 'webface' in args.datasets:
+    download_webface('./data')

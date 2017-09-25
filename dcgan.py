@@ -58,7 +58,7 @@ class DCGAN(object):
         self.checkpoint_dir = checkpoint_dir
 
         # all the data path
-        if self.dataset_name == 'Webface':
+        if self.dataset_name == 'webface':
             self.data = glob(os.path.join('./data', self.dataset_name, '*', self.input_fname_pattern))
         else:
             self.data = glob(os.path.join('./data', self.dataset_name, self.input_fname_pattern))
@@ -155,7 +155,7 @@ class DCGAN(object):
             print(" [!] Load failed...")
 
         for epoch in xrange(config.epoch):
-            if config.dataset == 'Webface': 
+            if config.dataset == 'webface': 
                 self.data = glob(os.path.join("./data", config.dataset, '*', self.input_fname_pattern))
             else:
                 self.data = glob(os.path.join("./data", config.dataset, self.input_fname_pattern))
