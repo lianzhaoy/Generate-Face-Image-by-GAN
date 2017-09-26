@@ -37,8 +37,8 @@ def main(_):
     if not os.path.exists(FLAGS.sample_dir):
         os.makedirs(FLAGS.sample_dir)
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.5)
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.3)
     run_config = tf.ConfigProto(gpu_options=gpu_options)
     run_config.gpu_options.allow_growth=False
 
@@ -74,8 +74,8 @@ def main(_):
 
         # Below is codes for visualization
         OPTION = 1
-        # if FLAGS.visualize:
-        visualize(sess, dcgan, FLAGS, OPTION)
+        if FLAGS.visualize:
+            visualize(sess, dcgan, FLAGS, OPTION)
 
 if __name__ == '__main__':
     tf.app.run()

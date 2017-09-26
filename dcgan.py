@@ -56,7 +56,7 @@ class DCGAN(object):
         self.dataset_name = dataset_name
         self.input_fname_pattern = input_fname_pattern
         self.checkpoint_dir = checkpoint_dir
-
+        self.sample_dir = os.path.join(sample_dir, self.dataset_name) 
         # all the data path
         if self.dataset_name == 'webface':
             self.data = glob(os.path.join('./data', self.dataset_name, '*', self.input_fname_pattern))
@@ -201,7 +201,7 @@ class DCGAN(object):
                         samples, d_loss, g_loss = self.sess.run([self.sampler, self.d_loss, self.g_loss],
                             feed_dict={ self.z: sample_z, self.inputs: sample_inputs})
                         save_images(samples, image_manifold_size(samples.shape[0]),
-                                './{}/train_{:02d}_{:04d}.png'.format(config.sample_dir, epoch, idx))
+                                './{}/train_{:02d}_{:04d}.png'.format(self.sample_dir, epoch, idx))
                         print("[Sample] d_loss: %.8f, g_loss: %.8f" % (d_loss, g_loss)) 
                     except:
                         print("one pic error!...")

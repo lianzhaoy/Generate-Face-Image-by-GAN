@@ -92,7 +92,7 @@ def download_webface(dirpath):
     print('Found Webface - skip')
     return
 
-  filename, drive_id  = "Webface.zip", "0B1w4EurIZUokcndTMWRDZy1hVUE"
+  filename, drive_id  = "webface.zip", "0B1w4EurIZUokcndTMWRDZy1hVUE"
   save_path = os.path.join(dirpath, filename)
 
   if os.path.exists(save_path):

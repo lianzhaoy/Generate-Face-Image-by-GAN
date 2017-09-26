@@ -21,7 +21,7 @@ To train a model with downloaded dataset:
 
     $ python main.py --dataset mnist --input_height=28 --output_height=28 --train
     $ python main.py --dataset celebA --input_height=108 --train --crop
-    $ python main.py --dataset webface --input_height=256 --train
+    $ python main.py --dataset webface --input_height=64 --train
 
 To test with an existing model:
 
