@@ -57,6 +57,8 @@ class DCGAN(object):
         self.input_fname_pattern = input_fname_pattern
         self.checkpoint_dir = checkpoint_dir
         self.sample_dir = os.path.join(sample_dir, self.dataset_name) 
+        if not os.path.exists(self.sample_dir):
+            os.makedirs(self.sample_dir)
         # all the data path
         if self.dataset_name == 'webface':
             self.data = glob(os.path.join('./data', self.dataset_name, '*', self.input_fname_pattern))
