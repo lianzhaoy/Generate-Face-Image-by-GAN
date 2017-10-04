@@ -12,7 +12,7 @@ from operations import *
 class DCGAN(object):
     def __init__(self, sess, input_height=108, input_width=108, crop=True,
         batch_size=64, sample_num=64, output_height=64, output_width=64,
-        z_dim=100, gf_dim=64, df_dim=64, gfc_dim=1024, dfc_dim=1024, channel=3, 
+        z_dim=16384, gf_dim=64, df_dim=64, gfc_dim=1024, dfc_dim=1024, channel=3, 
         dataset_name='default', input_fname_pattern='*.jpg', 
         checkpoint_dir=None, sample_dir=None):
 
@@ -82,13 +82,18 @@ class DCGAN(object):
         #inputs: [batch_size, image_h, image_w, channel]
         inputs = self.inputs
 
+        self.glass = tf.placeholder(
+            tf.float32, [self.batch_size] + image_dims, name='real_images')
+        glass = self.glass
+
         self.z = tf.placeholder(tf.float32, [None, self.z_dim], name='z')
         self.z_sum = tf.summary.histogram("z", self.z)
 
-        self.d_real, self.d_logits_real = self.discriminator(inputs, reuse=False)
+        self.d_real, self.d_logits_real, self.face_features = self.discriminator(inputs, reuse=False)
+        _, _, self.glass_features = self.discriminator(glass, reuse=True)
         self.g = self.generator(self.z, reuse = False)
         self.sampler = self.generator(self.z, reuse = True)
-        self.d_fake, self.d_logits_fake = self.discriminator(self.g, reuse=True)
+        self.d_fake, self.d_logits_fake, _ = self.discriminator(self.g, reuse=True)
 
         self.d_real_sum = tf.summary.histogram("d_logits_real", self.d_real)
         self.d_fake_sum = tf.summary.histogram("d_logits_fake", self.d_fake)
@@ -118,7 +123,7 @@ class DCGAN(object):
         self.saver = tf.train.Saver()
 
 
-    def train(self, config):
+      def train(self, config):
         d_optim = tf.train.AdamOptimizer(config.learning_rate, beta1=config.beta1) \
               .minimize(self.d_loss, var_list=self.d_vars)
         g_optim = tf.train.AdamOptimizer(config.learning_rate, beta1=config.beta1) \
@@ -161,6 +166,7 @@ class DCGAN(object):
                 self.data = glob(os.path.join("./data", config.dataset, '*', self.input_fname_pattern))
             else:
                 self.data = glob(os.path.join("./data", config.dataset, self.input_fname_pattern))
+            self.glass_data = glob(os.path.join("./data", "glass")) * config.batch_size
             batch_idxs = min(len(self.data), config.train_size) // config.batch_size
             # batch_idxs = 20
             for idx in xrange(0, batch_idxs):
@@ -172,27 +178,35 @@ class DCGAN(object):
                             resize_width=self.output_width,
                             crop=self.crop,
                             grayscale=self.grayscale) for batch_file in batch_files]
+                glass_batch = [get_image(batch_file,
+                            input_height=self.input_height,
+                            input_width=self.input_width,
+                            resize_height=self.output_height,
+                            resize_width=self.output_width,
+                            crop=False,
+                            grayscale=Flase) for batch_file in self.glass_data]
                 if self.grayscale:
                     batch_images = np.array(batch).astype(np.float32)[:, :, :, None]
                 else:
                     batch_images = np.array(batch).astype(np.float32)
-                batch_z = np.random.uniform(-1, 1, [config.batch_size, self.z_dim]).astype(np.float32)
+                # batch_z = np.random.uniform(-1, 1, [config.batch_size, self.z_dim]).astype(np.float32)
+                batch_z = tf.concat([self.face_features, self.glass_features], axis=1)
 
                 # Update D network
                 _, summary_str = self.sess.run([d_optim, self.d_sum], feed_dict={ self.inputs: batch_images, self.z: batch_z })
                 self.writer.add_summary(summary_str, counter)
 
                 # Update G network
-                _, summary_str = self.sess.run([g_optim, self.g_sum], feed_dict={ self.z: batch_z })
+                _, summary_str = self.sess.run([g_optim, self.g_sum], feed_dict={ self.z: batch_z, self.glass: glass_batch})
                 self.writer.add_summary(summary_str, counter)
 
                 # Run g_optim twice to make sure that d_loss does not go to zero (different from paper)
-                _, summary_str = self.sess.run([g_optim, self.g_sum], feed_dict={ self.z: batch_z })
+                _, summary_str = self.sess.run([g_optim, self.g_sum], feed_dict={ self.z: batch_z, self.glass: glass_batch})
                 self.writer.add_summary(summary_str, counter)
           
-                errD_fake = self.d_loss_fake.eval({ self.z: batch_z })
+                errD_fake = self.d_loss_fake.eval({ self.z: batch_z, self.glass: glass_batch })
                 errD_real = self.d_loss_real.eval({ self.inputs: batch_images })
-                errG = self.g_loss.eval({self.z: batch_z})
+                errG = self.g_loss.eval({self.z: batch_z, self.glass: glass_batch})
 
                 counter += 1
                 print("Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f" \
@@ -211,6 +225,7 @@ class DCGAN(object):
                 if np.mod(counter, 500) == 2:
                     self.save(config.checkpoint_dir, counter)
 
+
     def discriminator(self, x_input, reuse=False):
         with tf.variable_scope('discriminator') as scope:
             if(reuse):
@@ -221,7 +236,7 @@ class DCGAN(object):
             h2 = lrelu(self.d_bn2(conv2d(h1, self.df_dim*4, name='d_h2_conv')))
             h3 = lrelu(self.d_bn3(conv2d(h2, self.df_dim*8, name='d_h3_conv')))
             h4 = linear(tf.reshape(h3, [self.batch_size, -1]), 1, scope='d_h4_lin')
-        return tf.nn.sigmoid(h4), h4
+        return tf.nn.sigmoid(h4), h4, tf.reshape(h3, [self.batch_size, -1])
 
     def generator(self, z, reuse=False):
         with tf.variable_scope('generator') as scope:
