@@ -38,7 +38,7 @@ def main(_):
         os.makedirs(FLAGS.sample_dir)
 
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.3)
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=1)
     run_config = tf.ConfigProto(gpu_options=gpu_options)
     run_config.gpu_options.allow_growth=False
 
