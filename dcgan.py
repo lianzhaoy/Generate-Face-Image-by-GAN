@@ -212,7 +212,7 @@ class DCGAN(object):
                 print("Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f" \
                     % (epoch, idx, batch_idxs, time.time() - start_time, errD_fake+errD_real, errG))                
             
-                if np.mod(counter, 10) == 1:
+                if np.mod(counter, 100) == 1:
                     try:
                         samples, d_loss, g_loss = self.sess.run([self.sampler, self.d_loss, self.g_loss],
                             feed_dict={ self.inputs: batch_images, self.glass: glass_batch})
@@ -236,8 +236,6 @@ class DCGAN(object):
             h2 = lrelu(self.d_bn2(conv2d(h1, self.df_dim*4, name='d_h2_conv')))
             h3 = lrelu(self.d_bn3(conv2d(h2, self.df_dim*8, name='d_h3_conv')))
             h4 = linear(tf.reshape(h3, [self.batch_size, -1]), 1, scope='d_h4_lin')
-            print("**********  h3 shape **********")
-            print(h3.get_shape())
         return tf.nn.sigmoid(h4), h4, tf.reshape(h3, [self.batch_size, -1])
 
     def generator(self, z, reuse=False):
