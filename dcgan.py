@@ -12,7 +12,7 @@ from operations import *
 class DCGAN(object):
     def __init__(self, sess, input_height=108, input_width=108, crop=True,
         batch_size=64, sample_num=64, output_height=64, output_width=64,
-        z_dim=8192, gf_dim=64, df_dim=64, gfc_dim=1024, dfc_dim=1024, channel=3, 
+        z_dim=16384, gf_dim=128, df_dim=64, gfc_dim=1024, dfc_dim=1024, channel=3, 
         dataset_name='default', input_fname_pattern='*.jpg', 
         checkpoint_dir=None, sample_dir=None):
 
@@ -138,7 +138,7 @@ class DCGAN(object):
             self.d_loss_real_sum, self.d_loss_sum])
         self.writer = tf.summary.FileWriter("./logs", self.sess.graph)
 
-        sample_z = np.random.uniform(-1, 1, size=(self.sample_num , self.z_dim))
+        # sample_z = np.random.uniform(-1, 1, size=(self.sample_num , self.z_dim))
 
         sample_files = self.data[0:self.sample_num]
         sample = [get_image(sample_file,
@@ -162,12 +162,19 @@ class DCGAN(object):
         else:
             print(" [!] Load failed...")
 
+        self.glass_data = [os.path.join("./data", "glass", "glass.png")] * config.batch_size
+        glass_batch = [get_image(batch_file,
+                    input_height=self.input_height,
+                    input_width=self.input_width,
+                    resize_height=self.output_height,
+                    resize_width=self.output_width,
+                    crop=False,
+                    grayscale=False) for batch_file in self.glass_data]
         for epoch in xrange(config.epoch):
             if config.dataset == 'webface': 
                 self.data = glob(os.path.join("./data", config.dataset, '*', self.input_fname_pattern))
             else:
                 self.data = glob(os.path.join("./data", config.dataset, self.input_fname_pattern))
-            self.glass_data = glob(os.path.join("./data", "glass")) * config.batch_size
             batch_idxs = min(len(self.data), config.train_size) // config.batch_size
             # batch_idxs = 20
             for idx in xrange(0, batch_idxs):
@@ -179,13 +186,6 @@ class DCGAN(object):
                             resize_width=self.output_width,
                             crop=self.crop,
                             grayscale=self.grayscale) for batch_file in batch_files]
-                glass_batch = [get_image(batch_file,
-                            input_height=self.input_height,
-                            input_width=self.input_width,
-                            resize_height=self.output_height,
-                            resize_width=self.output_width,
-                            crop=False,
-                            grayscale=Flase) for batch_file in self.glass_data]
                 if self.grayscale:
                     batch_images = np.array(batch).astype(np.float32)[:, :, :, None]
                 else:
@@ -212,10 +212,10 @@ class DCGAN(object):
                 print("Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f" \
                     % (epoch, idx, batch_idxs, time.time() - start_time, errD_fake+errD_real, errG))                
             
-                if np.mod(counter, 100) == 1:
+                if np.mod(counter, 10) == 1:
                     try:
                         samples, d_loss, g_loss = self.sess.run([self.sampler, self.d_loss, self.g_loss],
-                            feed_dict={ self.z: sample_z, self.inputs: sample_inputs})
+                            feed_dict={ self.inputs: batch_images, self.glass: glass_batch})
                         save_images(samples, image_manifold_size(samples.shape[0]),
                                 './{}/train_{:02d}_{:04d}.png'.format(self.sample_dir, epoch, idx))
                         print("[Sample] d_loss: %.8f, g_loss: %.8f" % (d_loss, g_loss)) 
@@ -252,8 +252,8 @@ class DCGAN(object):
             s_h16, s_w16 = conv_out_size_same(s_h8, 2), conv_out_size_same(s_w8, 2)
 
             # project `z` and reshape
-            h0 = linear(z, self.gf_dim*8*s_h16*s_w16, scope='g_h0_lin')
-            h0 = tf.reshape(h0, [-1, s_h16, s_w16, self.gf_dim * 8])
+            # h0 = linear(z, self.gf_dim*8*s_h16*s_w16, scope='g_h0_lin')
+            h0 = tf.reshape(z, [-1, s_h16, s_w16, self.gf_dim * 8])
             h0 = tf.nn.relu(self.g_bn0(h0))
 
             output1_shape = [self.batch_size, s_h8, s_w8, self.gf_dim*4]

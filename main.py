@@ -37,12 +37,12 @@ def main(_):
     if not os.path.exists(FLAGS.sample_dir):
         os.makedirs(FLAGS.sample_dir)
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=1)
-    run_config = tf.ConfigProto(gpu_options=gpu_options)
-    run_config.gpu_options.allow_growth=False
+    # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=1)
+    # run_config = tf.ConfigProto(gpu_options=gpu_options)
+    # run_config.gpu_options.allow_growth=False
 
-    with tf.Session(config=run_config) as sess:
+    with tf.Session() as sess:
 
         dcgan = DCGAN(sess,
                 input_width=FLAGS.input_width,
