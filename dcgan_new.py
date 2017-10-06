@@ -103,10 +103,8 @@ class DCGAN(object):
         self.z_sum = tf.summary.histogram("z", self.z)
 
 
-        self.d_loss_real = tf.reduce_mean(
-            tf.nn.sigmoid_cross_entropy_with_logits(logits=self.d_logits_real, labels=tf.ones_like(self.d_real)))
-        self.d_loss_fake = tf.reduce_mean(
-            tf.nn.sigmoid_cross_entropy_with_logits(logits=self.d_logits_fake, labels=tf.zeros_like(self.d_fake)))
+        self.d_loss_real = tf.reduce_mean(self.d_logits_real)
+        self.d_loss_fake = tf.reduce_mean(self.d_logits_fake)
         self.g_loss = tf.reduce_mean(
             tf.nn.sigmoid_cross_entropy_with_logits(logits=self.d_logits_fake, labels=tf.ones_like(self.d_fake)))
         self.d_loss = self.d_loss_fake + self.d_loss_real
