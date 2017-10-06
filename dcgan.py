@@ -91,7 +91,8 @@ class DCGAN(object):
         _, _, self.glass_features = self.discriminator(glass, reuse=True)
         self.z = tf.concat([self.face_features, self.glass_features], axis=1)
         self.g = self.generator(self.z, reuse = False)
-        self.sampler = self.generator(self.z, reuse = True)
+        self.sampler_z = tf.concat([np.random.uniform(-1, 1, size=(self.sample_num , self.z_dim / 2)), self.glass_features], axis=1)
+        self.sampler = self.generator(self.sampler_z, reuse = True)
         self.d_fake, self.d_logits_fake, _ = self.discriminator(self.g, reuse=True)
 
         self.d_real_sum = tf.summary.histogram("d_logits_real", self.d_real)
@@ -215,7 +216,7 @@ class DCGAN(object):
                 if np.mod(counter, 100) == 1:
                     try:
                         samples, d_loss, g_loss = self.sess.run([self.sampler, self.d_loss, self.g_loss],
-                            feed_dict={ self.inputs: batch_images, self.glass: glass_batch})
+                            feed_dict={self.glass: glass_batch})
                         save_images(samples, image_manifold_size(samples.shape[0]),
                                 './{}/train_{:02d}_{:04d}.png'.format(self.sample_dir, epoch, idx))
                         print("[Sample] d_loss: %.8f, g_loss: %.8f" % (d_loss, g_loss)) 
