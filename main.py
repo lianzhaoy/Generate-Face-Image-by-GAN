@@ -6,7 +6,7 @@ from operations import *
 from dcgan import DCGAN
 
 flags = tf.app.flags
-flags.DEFINE_integer("epoch", 5, "Epoch to train [25]")
+flags.DEFINE_integer("epoch", 1, "Epoch to train [25]")
 flags.DEFINE_float("learning_rate", 0.0002, "Learning rate of for adam [0.0002]")
 flags.DEFINE_float("beta1", 0.5, "Momentum term of adam [0.5]")
 flags.DEFINE_integer("train_size", np.inf, "The size of train images [np.inf]")
@@ -37,7 +37,7 @@ def main(_):
     if not os.path.exists(FLAGS.sample_dir):
         os.makedirs(FLAGS.sample_dir)
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=1)
     run_config = tf.ConfigProto(gpu_options=gpu_options)
     run_config.gpu_options.allow_growth=False
