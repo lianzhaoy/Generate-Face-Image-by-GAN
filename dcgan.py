@@ -83,7 +83,7 @@ class DCGAN(object):
         inputs = self.inputs
 
         self.glass = tf.placeholder(
-            tf.float32, [self.batch_size] + image_dims, name='real_images')
+            tf.float32, [self.batch_size] + image_dims, name='glass_images')
         glass = self.glass
 
 

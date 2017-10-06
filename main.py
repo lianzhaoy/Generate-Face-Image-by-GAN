@@ -3,7 +3,7 @@ import scipy.misc
 import numpy as np
 import tensorflow as tf
 from operations import *
-from dcgan import DCGAN
+from dcgan_new import DCGAN
 
 flags = tf.app.flags
 flags.DEFINE_integer("epoch", 1, "Epoch to train [25]")

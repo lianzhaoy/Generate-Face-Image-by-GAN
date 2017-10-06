@@ -44,6 +44,8 @@ class DCGAN(object):
         self.gfc_dim = gfc_dim
         self.dfc_dim = dfc_dim
 
+        self.lambd = 0.25
+
         # batch normalization
         self.d_bn1 = batch_norm(name='d_bn1')
         self.d_bn2 = batch_norm(name='d_bn2')
@@ -105,16 +107,25 @@ class DCGAN(object):
 
         self.d_loss_real = tf.reduce_mean(self.d_logits_real)
         self.d_loss_fake = tf.reduce_mean(self.d_logits_fake)
-        self.g_loss = tf.reduce_mean(
-            tf.nn.sigmoid_cross_entropy_with_logits(logits=self.d_logits_fake, labels=tf.ones_like(self.d_fake)))
-        self.d_loss = self.d_loss_fake + self.d_loss_real
+        self.g_loss = self.d_loss_fake
+        self.d_loss = self.d_loss_real - self.d_loss_fake
+
+
+        epsilon = tf.random_uniform([], 0.0, 1.0)
+        input_hat = epsilon * inputs + (1 - epsilon) * inputs
+        self.d_hat, self.d_logits_hat, _ = self.discriminator(input_hat, resue=True)
+        
+        gradients = tf.gradients(self.d_logits_hat, input_hat)[0]
+        print(gradients.get_shape().as_list())
+        slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), axis=1))
+        gradient_penalty = tf.reduce_mean(tf.square(slopes - 1.0) * scale)
+        self.d_loss += self.lambd * gradient_penalty
+
 
         self.d_loss_real_sum = tf.summary.scalar("d_loss_real", self.d_loss_real)
         self.d_loss_fake_sum = tf.summary.scalar("d_loss_fake", self.d_loss_fake)
         self.d_loss_sum = tf.summary.scalar("d_loss", self.d_loss)
         self.g_loss_sum = tf.summary.scalar("g_loss", self.g_loss)
-
-
 
         t_vars = tf.trainable_variables()
         self.d_vars = [var for var in t_vars if 'd_' in var.name]
@@ -126,7 +137,7 @@ class DCGAN(object):
     def train(self, config):
         d_optim = tf.train.AdamOptimizer(config.learning_rate, beta1=config.beta1) \
               .minimize(self.d_loss, var_list=self.d_vars)
-        g_optim = tf.train.AdamOptimizer(config.learning_rate, beta1=config.beta1) \
+        g_optim = tf.train.AdamOptimizer(config.learning_rate * 5, beta1=config.beta1) \
               .minimize(self.g_loss, var_list=self.g_vars)
 
         tf.global_variables_initializer().run()
